@@ -16,6 +16,9 @@
       (handler request)
       (redirect (str (cas-server-fn) "/login?service=" (service-fn))))))
 
+(defn- set-session-var [res key val]
+  (assoc-in res [:session key] val))
+
 (defn- ticket-validation-filter
   [handler cas-server-fn service-fn]
   (let [ticket-validator (Cas10TicketValidator. (cas-server-fn))]
@@ -23,7 +26,8 @@
       (if-let [ticket (get-in request [:params artifact-parameter-name])]
         (try
           (let [assertion (.validate ticket-validator ticket (service-fn))]
-            (handler (update-in (update-in request [:params] assoc const-cas-assertion assertion) [:session] assoc const-cas-assertion assertion)))
+            (set-session-var (handler (update-in request [:params] assoc const-cas-assertion assertion))
+                             const-cas-assertion assertion))
           (catch TicketValidationException e
             (log/error "Ticket validation exception " e)
             {:status 403}))
