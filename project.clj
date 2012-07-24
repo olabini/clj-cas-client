@@ -1,4 +1,4 @@
-(defproject clj-cas-client "0.0.5"
+(defproject clj-cas-client "0.0.6"
   :description "Makes it possible to wrap a Cas Client middleware around Ring handlers"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/tools.logging "0.2.3"]
