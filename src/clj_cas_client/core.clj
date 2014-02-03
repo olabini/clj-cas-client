@@ -1,7 +1,8 @@
 
 (ns clj-cas-client.core
   (:use ring.util.response)
-  (:require [clojure.tools.logging :as log])
+  (:require [clojure.tools.logging :as log]
+            [ring.middleware.params :refer [wrap-params]])
   (:import (org.jasig.cas.client.validation Cas10TicketValidator
                                             TicketValidationException)))
 (def artifact-parameter-name "ticket")
@@ -66,5 +67,5 @@
           user-principal-filter
           (authentication-filter cas-server-fn service-fn)
           (ticket-validation-filter cas-server-fn service-fn)
-          )
+          wrap-params)
       handler)))
