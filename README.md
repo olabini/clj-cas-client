@@ -14,6 +14,7 @@ To wrap a handler with cas:
 
 ```clojure
 (use 'clj-cas-client.core)
+(require '[ring.middleware.session :refer [wrap-session]])
 
 (defn cas-server []
   "https://example.org/cas")
@@ -25,8 +26,11 @@ To wrap a handler with cas:
 
 (def app (-> routes
              handler/site
-             (cas cas-server service-name)))
+             (cas cas-server service-name)
+             wrap-session))
 ```
+
+Note that clj-cas-client depends on the session middleware, so the handler returned by `cas` must be wrapped with `wrap-session`.
 
 This will redirect all requests to the cas server for login, validate the tickets from the cas server, and make sure to add a :username key to the request map.
 
