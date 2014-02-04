@@ -20,7 +20,7 @@
 
 (defn- valid? [request]
   (or (get-in request [:session const-cas-assertion])
-      (get-in request [:params artifact-parameter-name])))
+      (get-in request [:query-params artifact-parameter-name])))
 
 (defn authentication-filter
   [handler cas-server-fn service-fn]
@@ -33,9 +33,9 @@
   (assoc-in res [:session const-cas-assertion] assertion))
 
 (defn request-assertion [req assertion]
-  (update-in req [:params] assoc const-cas-assertion assertion))
+  (update-in req [:query-params] assoc const-cas-assertion assertion))
 
-(defn ticket [r] (get-in r [:params artifact-parameter-name]))
+(defn ticket [r] (get-in r [:query-params artifact-parameter-name]))
 
 (defn ticket-validation-filter-maker [validator-maker]
   (fn [handler cas-server-fn service-fn]
@@ -54,7 +54,7 @@
 
 (defn user-principal-filter [handler]
   (fn [request]
-    (if-let [assertion (or (get-in request [:params const-cas-assertion])
+    (if-let [assertion (or (get-in request [:query-params const-cas-assertion])
                            (get-in request [:session const-cas-assertion]))]
       (handler (assoc request :username (.getName (.getPrincipal assertion))))
       (handler request))))
