@@ -34,6 +34,10 @@ Note that clj-cas-client depends on the session middleware, so the handler retur
 
 This will redirect all requests to the cas server for login, validate the tickets from the cas server, and make sure to add a :username key to the request map.
 
+## Single Sign Out
+
+For single sign out, use the [cas-single-sign-out](https://github.com/solita/cas-single-sign-out) middleware.
+
 ## License
 
 Copyright (C) 2012 Ola Bini
