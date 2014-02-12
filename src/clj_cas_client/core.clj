@@ -25,11 +25,13 @@
       (get-in request [:query-params (keyword artifact-parameter-name)])))
 
 (defn authentication-filter
-  [handler cas-server-fn service-fn]
+  [handler cas-server-fn service-fn no-redirect?]
   (fn [request]
     (if (valid? request)
       (handler request)
-      (redirect (str (cas-server-fn) "/login?service=" (service-fn))))))
+      (if (no-redirect? request)
+        {:status 403}
+        (redirect (str (cas-server-fn) "/login?service=" (service-fn)))))))
 
 (defn session-assertion [res assertion]
   (assoc-in res [:session const-cas-assertion] assertion))
@@ -65,12 +67,24 @@
       (handler request))))
 
 (defn cas
-  [handler cas-server-fn service-fn & options]
-  (let [opts (apply hash-map options)]
-    (if (get opts :enabled true)
+  "Middleware that requires the user to authenticate with a CAS server.
+
+  The users's username is added to the request map under the :username key.
+
+  Accepts the following options:
+
+    :enabled      - when false, the middleware does nothing
+    :no-redirect? - if this predicate function returns true for a request, a
+                    403 Forbidden response will be returned instead of a 302
+                    Found redirect"
+  [handler cas-server-fn service-fn & {:as options}]
+  (let [options (merge {:enabled true
+                        :no-redirect? (constantly false)}
+                       options)]
+    (if (:enabled options)
       (-> handler
-          user-principal-filter
-          (authentication-filter cas-server-fn service-fn)
-          (ticket-validation-filter cas-server-fn service-fn)
-          wrap-params)
+        user-principal-filter
+        (authentication-filter cas-server-fn service-fn (:no-redirect? options))
+        (ticket-validation-filter cas-server-fn service-fn)
+        wrap-params)
       handler)))

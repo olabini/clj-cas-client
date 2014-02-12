@@ -14,13 +14,15 @@
     (is (instance? Cas10TicketValidator v))))
 
 (deftest authentication-filter-test
-  (let [af (authentication-filter (fn [r] [:test-authentication-filter r]) (fn [] "cas server fn") (fn [] "service fn"))]
+  (let [af (authentication-filter (fn [r] [:test-authentication-filter r]) (fn [] "cas server fn") (fn [] "service fn")
+                                  (fn [r] (get-in r [:headers "ajax-request"])))]
     (is (= (af {:session {"_const_cas_assertion_" "blarg"}}) [:test-authentication-filter {:session {"_const_cas_assertion_" "blarg"}}]))
     (is (= (af {:query-params {"ticket" "the tick"}}) [:test-authentication-filter {:query-params {"ticket" "the tick"}}]))
     (is (= (af {:session {"_const_cas_assertion_" "blarg"}
                 :query-params {"ticket" "the tick"}}) [:test-authentication-filter {:session {"_const_cas_assertion_" "blarg"}
                                                                               :query-params {"ticket" "the tick"}}]))
-    (is (= (af {}) {:status 302 :headers {"Location" "cas server fn/login?service=service fn"}  :body ""}))))
+    (is (= (af {}) {:status 302 :headers {"Location" "cas server fn/login?service=service fn"}  :body ""}))
+    (is (= (af {:headers {"ajax-request" true}}) {:status 403}))))
 
 (def ^:dynamic test-validator (fn [cas-server-fn ticket service] nil))
 
